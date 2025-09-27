@@ -1,11 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
+    [SerializeField] private int enemiesToAddPerWave = 1;
 
     [Header("Enemy Spawning")]
     [SerializeField] private GameObject enemyPrefab;
@@ -17,7 +19,22 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float maxSpawnY = 0.9f;
     [SerializeField] private float spawnXPosition = 1.25f;
 
+    [Header("Player Stats")]
+    [SerializeField] private int playerLives = 3;
+
+    [Header("Game Loop")]
+    [SerializeField] private float waveDuration = 10f; // 300 segundos = 5 minutos
+    private float waveTimer;
+    private int currentWave = 1;
+
+    [Header("UI Elements")]
+    [SerializeField] private TextMeshProUGUI scoreText;
+    [SerializeField] private TextMeshProUGUI livesText;
+    [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private TextMeshProUGUI waveText;
+
     private int currentEnemyCount = 0;
+    public int score = 0;
 
     private void Awake()
     {
@@ -32,6 +49,8 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        waveTimer = waveDuration;
+
         for (int i = 0; i < maxEnemiesOnScreen; i++)
         {
             SpawnEnemy();
@@ -41,12 +60,38 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (waveTimer > 0)
+        {
+            waveTimer -= Time.deltaTime;
+        }
+        else
+        {
+            StartNextWave();
+        }
 
+        UpdateUI();
+    }
+
+    void UpdateUI()
+    {
+        scoreText.text = "SCORE: " + score;
+        livesText.text = "LIVES: " + playerLives;
+        waveText.text = "WAVE: " + currentWave;
+
+        float minutes = Mathf.FloorToInt(waveTimer / 60);
+        float seconds = Mathf.FloorToInt(waveTimer % 60);
+        timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
     }
 
     public void PlayerLosesLife()
     {
+        playerLives--;
+        Debug.Log("El jugador perdió una vida. Vidas restantes: " + playerLives);
 
+        if (playerLives < 0)
+        {
+            Debug.Log("PERDISTE");
+        }
     }
 
     private void SpawnEnemy()
@@ -79,5 +124,24 @@ public class GameManager : MonoBehaviour
         {
             StartCoroutine(SpawnWithDelay());
         }
+    }
+
+    void StartNextWave()
+    {
+        currentWave++;
+        waveTimer = waveDuration;
+        maxEnemiesOnScreen++;
+        Debug.Log("Starting Wave: " + currentWave);
+
+        for (int i = 0; i < enemiesToAddPerWave; i++)
+        {
+            SpawnEnemy();
+        }
+    }
+
+    public void AddScore(int pointsToAdd)
+    {
+        score += pointsToAdd;
+        Debug.Log("Score: " + score);
     }
 }

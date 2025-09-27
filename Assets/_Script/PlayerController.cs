@@ -44,9 +44,21 @@ public class PlayerController : MonoBehaviour
         rb.velocity = moveInput * moveSpeed;
 
         // Limite de pantalla ejeY
-        Vector3 currentPosition = transform.position;
-        currentPosition.y = Mathf.Clamp(currentPosition.y, -14f, 0f);
-        transform.position = currentPosition;
+        //Vector3 currentPosition = transform.position;
+        //currentPosition.y = Mathf.Clamp(currentPosition.y, -14f, 0f);
+        //transform.position = currentPosition;
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Enemy"))
+        {
+            Debug.Log("Player collided with an enemy!");
+
+            GameManager.Instance.PlayerLosesLife();
+
+            Destroy(other.gameObject);
+        }
     }
 
     void Shoot()

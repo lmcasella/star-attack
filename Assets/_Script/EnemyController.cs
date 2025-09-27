@@ -6,6 +6,7 @@ public class EnemyController : MonoBehaviour
 {
     [SerializeField] private float speed;
     [SerializeField] private float health;
+    [SerializeField] private int scoreValue = 100;
 
     private Rigidbody2D rb;
 
@@ -13,6 +14,8 @@ public class EnemyController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+
+        Debug.Log("Enemy speed is: " + speed);
 
         if (transform.position.x > 0)
         {
@@ -22,6 +25,8 @@ public class EnemyController : MonoBehaviour
         {
             rb.velocity = Vector2.right * speed;
         }
+
+        Debug.Log("Setting velocity to: " + rb.velocity);
     }
 
     // Update is called once per frame
@@ -47,6 +52,7 @@ public class EnemyController : MonoBehaviour
 
         if (health <= 0)
         {
+            GameManager.Instance.AddScore(scoreValue);
             Destroy(gameObject);
         }
     }
