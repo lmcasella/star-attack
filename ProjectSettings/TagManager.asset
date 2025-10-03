@@ -16,8 +16,8 @@ TagManager:
   - PlayerBoundary
   - Player
   - Enemy
-  - PlayerHItbox
-  - 
+  - PlayerHitbox
+  - EnemyBullet
   - 
   - 
   - 

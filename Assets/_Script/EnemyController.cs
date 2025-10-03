@@ -12,7 +12,7 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private ShootingPattern shootingPattern;
     [SerializeField] private GameObject enemyBulletPrefab;
     [SerializeField] private Transform firePoint;
-    [SerializeField] private Vector2 fireRateRange = new Vector2(2f, 5f); // Min and max time between shots
+    [SerializeField] private Vector2 fireRateRange = new Vector2();
     private float fireTimer;
 
     [Header("Audio")]
@@ -72,7 +72,7 @@ public class EnemyController : MonoBehaviour
 
         if (health <= 0)
         {
-            GameManager.Instance.AddScore(scoreValue);
+            GameManager.Instance.EnemyDefeated();
             AudioSource.PlayClipAtPoint(killSound, transform.position);
             Destroy(gameObject);
         }
@@ -81,6 +81,8 @@ public class EnemyController : MonoBehaviour
     void ResetFireTimer()
     {
         fireTimer = Random.Range(fireRateRange.x, fireRateRange.y);
+        Debug.Log("Next shot in: " + fireTimer + " seconds."); // Add this line
+
     }
 
     private void OnDestroy()

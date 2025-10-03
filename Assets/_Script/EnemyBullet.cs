@@ -7,8 +7,7 @@ public class EnemyBullet : MonoBehaviour
     [SerializeField] private float speed;
     private Rigidbody2D rb;
 
-    // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
     }
@@ -28,8 +27,9 @@ public class EnemyBullet : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D other)
     {
         // Si le pega al jugador, se elimina
-        if (other.gameObject.layer == LayerMask.NameToLayer("Player"))
+        if (other.gameObject.layer == LayerMask.NameToLayer("PlayerHitbox"))
         {
+            GameManager.Instance.PlayerLosesLife();
             Destroy(gameObject);
         }
         // Si pega con un borde, se elimina

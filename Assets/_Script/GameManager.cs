@@ -9,6 +9,8 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     [SerializeField] private int enemiesToAddPerWave = 1;
+    [SerializeField] private int baseEnemyScore = 100;
+    [SerializeField] private GameObject controlsPanel;
 
     [Header("Enemy Spawning")]
     [SerializeField] private GameObject enemyPrefab;
@@ -43,8 +45,15 @@ public class GameManager : MonoBehaviour
     [SerializeField] private AudioClip playerTakeDamageSound;
     private AudioSource audioSource;
 
+    [Header("Wave Transition")]
+    [SerializeField] private TextMeshProUGUI waveTransitionText;
+    [SerializeField] private float timeBetweenWaves = 3f;
+
     private int currentEnemyCount = 0;
+    public static int finalScore;
+
     private int score = 0;
+    private bool isTransitioningWave = false;
 
     private void Awake()
     {
@@ -75,25 +84,29 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!isTransitioningWave)
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                if (isPaused)
+                {
+                    ResumeGame();
+                }
+                else
+                {
+                    PauseGame();
+                }
+            }
+        }
+
         if (waveTimer > 0)
         {
             waveTimer -= Time.deltaTime;
         }
-        else
+        else if (!isTransitioningWave)
         {
-            StartNextWave();
-        }
-
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            if (isPaused)
-            {
-                ResumeGame();
-            }
-            else
-            {
-                PauseGame();
-            }
+            isTransitioningWave = true;
+            StartCoroutine(WaveTransition());
         }
 
         UpdateUI();
@@ -101,8 +114,8 @@ public class GameManager : MonoBehaviour
 
     void UpdateUI()
     {
-        scoreText.text = "SCORE: " + score;
-        waveText.text = "WAVE: " + currentWave;
+        scoreText.text = "PUNTAJE: " + score;
+        waveText.text = "OLEADA: " + currentWave;
 
         for (int i = 0; i < lifeIcons.Length; i++)
         {
@@ -119,6 +132,51 @@ public class GameManager : MonoBehaviour
         float minutes = Mathf.FloorToInt(waveTimer / 60);
         float seconds = Mathf.FloorToInt(waveTimer % 60);
         timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+    }
+
+    IEnumerator WaveTransition()
+    {
+        // Pausar juego
+        isPaused = true;
+        Time.timeScale = 0f;
+
+        if (waveTransitionText == null)
+        {
+            Debug.LogError("ERROR: Wave Transition Text is NOT ASSIGNED in the GameManager Inspector!");
+            // We must un-pause before stopping, or the game will be stuck forever.
+            Time.timeScale = 1f;
+            isPaused = false;
+            yield break; // Stop the coroutine
+        }
+
+        // 1: Mostrar mensaje de oleada completa
+        waveTransitionText.text = "OLEADA " + (currentWave) + " COMPLETA";
+        waveTransitionText.gameObject.SetActive(true);
+
+        yield return new WaitForSecondsRealtime(timeBetweenWaves);
+
+        // Checkear si ganó antes de mostrar la pantalla de victoria
+        if (currentWave >= 4)
+        {
+            finalScore = score;
+            Time.timeScale = 1f;
+            SceneManager.LoadScene("VictoryScene");
+            yield break;
+        }
+
+        currentWave++;
+
+        waveTransitionText.text = "PREPARATE PARA LA OLEADA " + currentWave;
+
+        yield return new WaitForSecondsRealtime(timeBetweenWaves / 2);
+
+        // Despausar
+        waveTransitionText.gameObject.SetActive(false);
+        Time.timeScale = 1f;
+        isPaused = false;
+        StartNextWave();
+
+        isTransitioningWave = false;
     }
 
     public void ResumeGame()
@@ -150,6 +208,7 @@ public class GameManager : MonoBehaviour
 
         if (playerLives <= 0)
         {
+            finalScore = score;
             SceneManager.LoadScene("GameOverScene");
         }
     }
@@ -176,6 +235,12 @@ public class GameManager : MonoBehaviour
         SpawnEnemy();
     }
 
+    public void EnemyDefeated()
+    {
+        int scoreToAdd = baseEnemyScore * currentWave;
+        AddScore(scoreToAdd);
+    }
+
     public void EnemyDestroyed()
     {
         currentEnemyCount--;
@@ -188,15 +253,8 @@ public class GameManager : MonoBehaviour
 
     void StartNextWave()
     {
-        if (currentWave == 4)
-        {
-            SceneManager.LoadScene("VictoryScene");
-            return;
-        }
-
-        currentWave++;
         waveTimer = waveDuration;
-        maxEnemiesOnScreen++;
+        maxEnemiesOnScreen += enemiesToAddPerWave;
         Debug.Log("Starting Wave: " + currentWave);
 
         for (int i = 0; i < enemiesToAddPerWave; i++)
@@ -209,5 +267,15 @@ public class GameManager : MonoBehaviour
     {
         score += pointsToAdd;
         Debug.Log("Score: " + score);
+    }
+
+    public void ShowControls()
+    {
+        controlsPanel.SetActive(true);
+    }
+
+    public void HideControls()
+    {
+        controlsPanel.SetActive(false);
     }
 }

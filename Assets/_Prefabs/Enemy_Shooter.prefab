@@ -173,13 +173,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 898d572b81b2ae242b7ff19266b01fe3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 6
+  speed: 3
   health: 2
   scoreValue: 100
   shootingPattern: {fileID: 11400000, guid: ca468133304632f4195b79b1720ebd7c, type: 2}
   enemyBulletPrefab: {fileID: 5403444351660407292, guid: c5c02e267ca85b944a342869642910d0, type: 3}
   firePoint: {fileID: 1873646051911510244}
-  fireRateRange: {x: 2, y: 5}
+  fireRateRange: {x: 1.7, y: 2.7}
   killSound: {fileID: 8300000, guid: 3e6d510b7f3903946a67093bf50afe0d, type: 3}
 --- !u!82 &1684666536979083131
 AudioSource:
