@@ -11,6 +11,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private List<Transform> firePoints;
     [SerializeField] private float moveSpeed;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip shootSound;
+    private AudioSource audioSource;
+
     private Rigidbody2D rb;
     private Animator animator;
     private Vector2 moveInput;
@@ -20,6 +24,7 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        audioSource = GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -67,5 +72,7 @@ public class PlayerController : MonoBehaviour
         {
             Instantiate(bulletPrefab, point.position, point.rotation);
         }
+
+        audioSource.PlayOneShot(shootSound);
     }
 }

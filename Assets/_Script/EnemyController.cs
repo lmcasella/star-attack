@@ -8,6 +8,16 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private float health;
     [SerializeField] private int scoreValue = 100;
 
+    [Header("Shooting")]
+    [SerializeField] private ShootingPattern shootingPattern;
+    [SerializeField] private GameObject enemyBulletPrefab;
+    [SerializeField] private Transform firePoint;
+    [SerializeField] private Vector2 fireRateRange = new Vector2(2f, 5f); // Min and max time between shots
+    private float fireTimer;
+
+    [Header("Audio")]
+    [SerializeField] private AudioClip killSound;
+
     private Rigidbody2D rb;
 
     // Start is called before the first frame update
@@ -26,13 +36,23 @@ public class EnemyController : MonoBehaviour
             rb.velocity = Vector2.right * speed;
         }
 
+        ResetFireTimer();
+
         Debug.Log("Setting velocity to: " + rb.velocity);
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        fireTimer -= Time.deltaTime;
+        if (fireTimer <= 0)
+        {
+            if (shootingPattern != null)
+            {
+                shootingPattern.Fire(this, firePoint, enemyBulletPrefab);
+            }
+            ResetFireTimer();
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -53,8 +73,14 @@ public class EnemyController : MonoBehaviour
         if (health <= 0)
         {
             GameManager.Instance.AddScore(scoreValue);
+            AudioSource.PlayClipAtPoint(killSound, transform.position);
             Destroy(gameObject);
         }
+    }
+
+    void ResetFireTimer()
+    {
+        fireTimer = Random.Range(fireRateRange.x, fireRateRange.y);
     }
 
     private void OnDestroy()

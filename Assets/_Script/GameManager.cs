@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -29,12 +30,21 @@ public class GameManager : MonoBehaviour
 
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI scoreText;
-    [SerializeField] private TextMeshProUGUI livesText;
+    //[SerializeField] private TextMeshProUGUI livesText;
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private TextMeshProUGUI waveText;
+    [SerializeField] private GameObject[] lifeIcons;
+
+    [Header("Pause Menu")]
+    [SerializeField] private GameObject pauseMenuPanel;
+    public static bool isPaused = false;
+
+    [Header("Audio")]
+    [SerializeField] private AudioClip playerTakeDamageSound;
+    private AudioSource audioSource;
 
     private int currentEnemyCount = 0;
-    public int score = 0;
+    private int score = 0;
 
     private void Awake()
     {
@@ -49,12 +59,17 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        audioSource = GetComponent<AudioSource>();
+
         waveTimer = waveDuration;
 
         for (int i = 0; i < maxEnemiesOnScreen; i++)
         {
             SpawnEnemy();
         }
+
+        isPaused = false;
+        Time.timeScale = 1f;
     }
 
     // Update is called once per frame
@@ -69,28 +84,73 @@ public class GameManager : MonoBehaviour
             StartNextWave();
         }
 
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (isPaused)
+            {
+                ResumeGame();
+            }
+            else
+            {
+                PauseGame();
+            }
+        }
+
         UpdateUI();
     }
 
     void UpdateUI()
     {
         scoreText.text = "SCORE: " + score;
-        livesText.text = "LIVES: " + playerLives;
         waveText.text = "WAVE: " + currentWave;
+
+        for (int i = 0; i < lifeIcons.Length; i++)
+        {
+            if (i < playerLives)
+            {
+                lifeIcons[i].SetActive(true);
+            }
+            else
+            {
+                lifeIcons[i].SetActive(false);
+            }
+        }
 
         float minutes = Mathf.FloorToInt(waveTimer / 60);
         float seconds = Mathf.FloorToInt(waveTimer % 60);
         timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
     }
 
+    public void ResumeGame()
+    {
+        pauseMenuPanel.SetActive(false);
+        Time.timeScale = 1f; // Tiempo normal de ejecucion
+        isPaused = false;
+    }
+
+    void PauseGame()
+    {
+        pauseMenuPanel.SetActive(true);
+        Time.timeScale = 0f; // Para el tiempo
+        isPaused = true;
+    }
+
+    public void QuitToMenu()
+    {
+        Time.timeScale = 1f;
+        isPaused = false;
+        SceneManager.LoadScene("MainMenuScene");
+    }
+
     public void PlayerLosesLife()
     {
         playerLives--;
+        audioSource.PlayOneShot(playerTakeDamageSound);
         Debug.Log("El jugador perdió una vida. Vidas restantes: " + playerLives);
 
-        if (playerLives < 0)
+        if (playerLives <= 0)
         {
-            Debug.Log("PERDISTE");
+            SceneManager.LoadScene("GameOverScene");
         }
     }
 
@@ -128,6 +188,12 @@ public class GameManager : MonoBehaviour
 
     void StartNextWave()
     {
+        if (currentWave == 4)
+        {
+            SceneManager.LoadScene("VictoryScene");
+            return;
+        }
+
         currentWave++;
         waveTimer = waveDuration;
         maxEnemiesOnScreen++;

@@ -11,8 +11,6 @@ public class BulletController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-
-        // 
         rb.velocity = transform.up * speed;
     }
 
@@ -20,6 +18,16 @@ public class BulletController : MonoBehaviour
     void Update()
     {
         
+    }
+
+    // Prevenir que las balas salgan mas juntas o mas separadas dependiendo de la direccicon de la nave
+    public void InitializeBullet(Vector2 shipVelocity)
+    {
+        // Velocidad de la bala hacia adelante
+        Vector2 bulletVelocity = transform.up * speed;
+
+        // + velocidad actual de la nave
+        rb.velocity = bulletVelocity + shipVelocity;
     }
 
     private void OnTriggerEnter2D(Collider2D other)
